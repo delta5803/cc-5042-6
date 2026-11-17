@@ -1,0 +1,485 @@
+{
+  "version": 1,
+  "features": [
+    {
+      "kind": "point",
+      "id": "p-1",
+      "name": "W",
+      "x": 300,
+      "y": 180,
+      "priority": 3,
+      "fontSize": 15,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-2",
+      "name": "中央公园 Central Park",
+      "x": 326,
+      "y": 180,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-3",
+      "name": "故宫博物院",
+      "x": 352,
+      "y": 180,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-4",
+      "name": "東京タワー",
+      "x": 378,
+      "y": 180,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-5",
+      "name": "Москва",
+      "x": 404,
+      "y": 180,
+      "priority": 2,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-6",
+      "name": "محمية طبيعية",
+      "x": 306,
+      "y": 206,
+      "priority": 0,
+      "fontSize": 15,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-7",
+      "name": "Île-de-France",
+      "x": 332,
+      "y": 206,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-8",
+      "name": "一个非常非常非常长的中文地名标签",
+      "x": 358,
+      "y": 206,
+      "priority": 1,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-9",
+      "name": "San Francisco",
+      "x": 384,
+      "y": 206,
+      "priority": 2,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-a",
+      "name": "서울특별시",
+      "x": 410,
+      "y": 206,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-b",
+      "name": "Αθήνα",
+      "x": 300,
+      "y": 232,
+      "priority": 0,
+      "fontSize": 15,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-c",
+      "name": "i",
+      "x": 326,
+      "y": 232,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-d",
+      "name": "København",
+      "x": 352,
+      "y": 232,
+      "priority": 2,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-e",
+      "name": "القاهرة",
+      "x": 378,
+      "y": 232,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-f",
+      "name": "São Paulo dos Campos",
+      "x": 404,
+      "y": 232,
+      "priority": 1,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-g",
+      "name": "Berlín",
+      "x": 306,
+      "y": 258,
+      "priority": 0,
+      "fontSize": 15,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-h",
+      "name": "日月潭",
+      "x": 332,
+      "y": 258,
+      "priority": 2,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-i",
+      "name": "Óváros",
+      "x": 358,
+      "y": 258,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-j",
+      "name": "Łódź",
+      "x": 384,
+      "y": 258,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-k",
+      "name": "Žilina",
+      "x": 410,
+      "y": 258,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-l",
+      "name": "新城",
+      "x": 300,
+      "y": 284,
+      "priority": 2,
+      "fontSize": 15,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-m",
+      "name": "Ακρόπολη Αθηνών",
+      "x": 326,
+      "y": 284,
+      "priority": 1,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-n",
+      "name": "תל אביב",
+      "x": 352,
+      "y": 284,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-o",
+      "name": "Tórshavn",
+      "x": 378,
+      "y": 284,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-p",
+      "name": "บางกอก",
+      "x": 404,
+      "y": 284,
+      "priority": 2,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-q",
+      "name": "Thành phố Hồ Chí Minh",
+      "x": 306,
+      "y": 310,
+      "priority": 0,
+      "fontSize": 15,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-r",
+      "name": "ལྷ་ས",
+      "x": 332,
+      "y": 310,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-s",
+      "name": "München",
+      "x": 358,
+      "y": 310,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-t",
+      "name": "大阪市中央区本町",
+      "x": 384,
+      "y": 310,
+      "priority": 3,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "p-u",
+      "name": "Genève",
+      "x": 410,
+      "y": 310,
+      "priority": 0,
+      "fontSize": 12,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "edge-left",
+      "name": "左边缘标签 Left Edge",
+      "x": 8,
+      "y": 120,
+      "priority": 3,
+      "fontSize": 13,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "edge-right",
+      "name": "右边缘标签 Right Edge",
+      "x": 992,
+      "y": 260,
+      "priority": 3,
+      "fontSize": 13,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "edge-top",
+      "name": "顶部边缘",
+      "x": 500,
+      "y": 6,
+      "priority": 1,
+      "fontSize": 13,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "edge-bottom",
+      "name": "底部边缘标签 Bottom Edge Label",
+      "x": 520,
+      "y": 794,
+      "priority": 1,
+      "fontSize": 13,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "corner-ne",
+      "name": "东北角 NE Corner",
+      "x": 985,
+      "y": 12,
+      "priority": 2,
+      "fontSize": 13,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "hi-1",
+      "name": "高优先枢纽 High Priority Hub",
+      "x": 760,
+      "y": 520,
+      "priority": 5,
+      "fontSize": 15,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "lo-1",
+      "name": "低优先站点",
+      "x": 778,
+      "y": 524,
+      "priority": 0,
+      "fontSize": 13,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "lo-2",
+      "name": "次级站点 Secondary",
+      "x": 744,
+      "y": 536,
+      "priority": 0,
+      "fontSize": 13,
+      "markerRadius": 5
+    },
+    {
+      "kind": "region",
+      "id": "region-lake",
+      "name": "青云湖流域 Qingyun Lake Watershed（长区域名称测试）",
+      "ring": [
+        {
+          "x": 120,
+          "y": 480
+        },
+        {
+          "x": 240,
+          "y": 440
+        },
+        {
+          "x": 400,
+          "y": 470
+        },
+        {
+          "x": 470,
+          "y": 560
+        },
+        {
+          "x": 420,
+          "y": 690
+        },
+        {
+          "x": 260,
+          "y": 720
+        },
+        {
+          "x": 140,
+          "y": 650
+        },
+        {
+          "x": 96,
+          "y": 560
+        }
+      ],
+      "priority": 1,
+      "fontSize": 14,
+      "anchor": {
+        "x": 283.4869791666667,
+        "y": 581.7109374999999
+      },
+      "anchorScore": 131.26958736875497
+    },
+    {
+      "kind": "region",
+      "id": "region-park",
+      "name": "河畔公园",
+      "ring": [
+        {
+          "x": 620,
+          "y": 620
+        },
+        {
+          "x": 760,
+          "y": 600
+        },
+        {
+          "x": 820,
+          "y": 700
+        },
+        {
+          "x": 740,
+          "y": 770
+        },
+        {
+          "x": 630,
+          "y": 730
+        }
+      ],
+      "priority": 2,
+      "fontSize": 13,
+      "anchor": {
+        "x": 720.7812499999999,
+        "y": 682.2916666666666
+      },
+      "anchorScore": 75.85984035810075
+    },
+    {
+      "kind": "point",
+      "id": "in-region-1",
+      "name": "湖中心观测站",
+      "x": 270,
+      "y": 580,
+      "priority": 4,
+      "fontSize": 13,
+      "markerRadius": 5
+    },
+    {
+      "kind": "point",
+      "id": "in-region-2",
+      "name": "码头 Pier",
+      "x": 300,
+      "y": 600,
+      "priority": 0,
+      "fontSize": 13,
+      "markerRadius": 5
+    }
+  ]
+}

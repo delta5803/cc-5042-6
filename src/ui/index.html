@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>地图标注引擎 · 矢量编辑窗口</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">地图文字标注引擎</div>
+      <div class="tools" role="group" aria-label="工具">
+        <button data-tool="select" class="tool active">选择/平移</button>
+        <button data-tool="point" class="tool">加点</button>
+        <button data-tool="region" class="tool">画区域</button>
+        <button data-action="rotate-left" class="tool">旋转 −15°</button>
+        <button data-action="rotate-right" class="tool">旋转 +15°</button>
+        <button data-action="reset-view" class="tool">重置视图</button>
+      </div>
+      <div class="io">
+        <button data-action="export">导出 JSON</button>
+        <button data-action="import">导入 JSON</button>
+        <button data-action="load-sample">载入示例</button>
+        <input type="file" id="import-file" accept="application/json" hidden />
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="map-pane">
+        <canvas id="map" aria-label="地图标注矢量编辑画布"></canvas>
+        <div id="hud" class="hud"></div>
+        <div id="toast" class="toast" role="alert" hidden></div>
+      </section>
+
+      <aside class="sidebar">
+        <section class="panel">
+          <h2>视图与调试</h2>
+          <div class="row">
+            <label><input type="checkbox" id="debug-toggle" checked /> 显示候选与拒绝原因</label>
+          </div>
+          <div class="row">
+            <label><input type="checkbox" id="candidate-toggle" checked /> 候选位置</label>
+          </div>
+          <div class="row">
+            <label><input type="checkbox" id="hidden-toggle" checked /> 隐藏要素标记</label>
+          </div>
+          <div class="row muted" id="view-state"></div>
+        </section>
+
+        <section class="panel">
+          <h2>选中要素</h2>
+          <div id="inspector" class="muted">未选中要素（点选地图上的点或区域）。</div>
+        </section>
+
+        <section class="panel grow">
+          <h2>标注结果（实际运算）</h2>
+          <div id="summary" class="summary"></div>
+          <div class="table-wrap">
+            <table id="result-table">
+              <thead>
+                <tr>
+                  <th>顺序</th><th>要素</th><th>优先级</th><th>结果</th><th>拒绝原因</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="hint">
+            顺序由“优先级降序 → 点先于区域 → id 升序”确定，每帧一致；拒绝原因取自真实候选试探。
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="statusbar">
+      <span id="status">就绪</span>
+      <span id="mode-hint" class="muted"></span>
+    </footer>
+
+    <script type="module" src="./editor.js"></script>
+  </body>
+</html>
