@@ -33,6 +33,8 @@ class LabelEditor {
     this.debug = true;
     this.showCandidates = true;
     this.showHidden = true;
+    // 碰撞候选加速：默认空间索引；可切到保留的暴力基准做运行参照对照。
+    this.collisionStrategy = 'spatial-index';
     this.draftRing = null;
     this.pan = null;
     this.layout = null;
@@ -129,6 +131,7 @@ class LabelEditor {
         features: this.features,
         view: this.view,
         measurer: this.measurer,
+        options: { collisionStrategy: this.collisionStrategy },
       });
       renderScene(this.canvas, this.view, this.features, this.layout, {
         debug: this.debug,
@@ -138,6 +141,7 @@ class LabelEditor {
       });
       this.drawDraftRing();
       this.updateHud();
+      this.updateCost();
       this.updateResults();
       this.updateInspector();
       this.persist();
@@ -196,6 +200,13 @@ class LabelEditor {
     });
     document.getElementById('hidden-toggle').addEventListener('change', (e) => {
       this.showHidden = e.target.checked;
+      this.frame();
+    });
+
+    const strategyEl = document.getElementById('strategy-select');
+    strategyEl.value = this.collisionStrategy;
+    strategyEl.addEventListener('change', (e) => {
+      this.collisionStrategy = e.target.value;
       this.frame();
     });
 
@@ -386,6 +397,32 @@ class LabelEditor {
         `要素 ${this.layout.stats.total} · 已放置 <b>${this.layout.stats.placed}</b> · ` +
         `隐藏 <b>${this.layout.stats.hidden}</b> · 放置率 ${(this.layout.stats.placementRate * 100).toFixed(0)}%`;
     }
+  }
+
+  updateCost() {
+    const el = document.getElementById('cost-breakdown');
+    if (!el) return;
+    if (!this.layout) {
+      el.innerHTML = '<span class="k">尚无布局</span>';
+      return;
+    }
+    const c = this.layout.cost;
+    const strategyLabel =
+      this.layout.collisionStrategy === 'spatial-index' ? '空间索引（加速）' : '暴力基准（运行参照）';
+    const rows = [
+      ['策略', strategyLabel],
+      ['候选试探', `${c.candidates}`],
+      ['精确相交测试', `${c.exactTests}`],
+      ['宽相位命中', `${c.broadPhaseHits}`],
+      ['标签碰撞', `${c.labelCollisions}`],
+      ['标记碰撞', `${c.markerCollisions}`],
+      ['越界候选', `${c.offCanvasCandidates}`],
+      ['区域外候选', `${c.outsideRegionCandidates}`],
+      ['布局耗时', `${c.layoutMs.toFixed(3)} ms`],
+    ];
+    el.innerHTML = rows
+      .map(([k, v]) => `<span class="k">${k}</span><span class="v">${v}</span>`)
+      .join('');
   }
 
   updateInspector() {

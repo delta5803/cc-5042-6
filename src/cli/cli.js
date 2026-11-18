@@ -39,7 +39,12 @@ function buildLayout(features, options = {}) {
     cy: options.cy ?? 400,
     dpr: 1,
   });
-  return runLabeling({ features, view: v, measurer: new FakeTextMeasurer() });
+  return runLabeling({
+    features,
+    view: v,
+    measurer: new FakeTextMeasurer(),
+    options: options.collisionStrategy ? { collisionStrategy: options.collisionStrategy } : {},
+  });
 }
 
 function printReport(layout) {
@@ -48,6 +53,12 @@ function printReport(layout) {
   console.log('=== 标注布局报告（离线度量，与引擎同一套选择/碰撞逻辑）===');
   console.log(
     `要素 ${s.total} | 已放置 ${s.placed} | 隐藏 ${s.hidden} | 放置率 ${(s.placementRate * 100).toFixed(1)}%`,
+  );
+  const c = layout.cost;
+  console.log(
+    `策略 ${layout.collisionStrategy} | 候选 ${c.candidates} | 精确相交测试 ${c.exactTests} | ` +
+      `宽相位命中 ${c.broadPhaseHits} | 标签碰撞 ${c.labelCollisions} | 标记碰撞 ${c.markerCollisions} | ` +
+      `布局耗时 ${c.layoutMs.toFixed(3)} ms`,
   );
   console.log('');
   console.log('处理顺序  结果  优先级  候选/主拒绝原因          名称');
@@ -129,13 +140,18 @@ async function main() {
 
   if (command === 'report') {
     const file = args._[0];
-    if (!file) throw new Error('用法：cli.js report <features.json> [--width --height --rotate --scale]');
+    if (!file) throw new Error('用法：cli.js report <features.json> [--width --height --rotate --scale --strategy]');
     const features = loadFeatures(file);
+    const strategy = args.strategy === true ? undefined : args.strategy;
+    if (strategy && strategy !== 'spatial-index' && strategy !== 'brute-force') {
+      throw new Error(`未知策略：${strategy}（可选 spatial-index / brute-force）`);
+    }
     const layout = buildLayout(features, {
       width: Number(args.width) || undefined,
       height: Number(args.height) || undefined,
       rotate: Number(args.rotate) || 0,
       scale: Number(args.scale) || undefined,
+      collisionStrategy: strategy,
     });
     printReport(layout);
     if (args.json) {
@@ -172,10 +188,35 @@ async function main() {
       { name: '缩小 0.4×', options: { scale: 0.4 } },
       { name: '小视口 480×320', options: { width: 480, height: 320 } },
     ];
+    // 打印部分保持原有每场景独立取样的行为（运行参照不变）。
     for (const scenario of scenarios) {
       const layout = buildLayout(sampleData(), scenario.options);
       printReport(layout);
     }
+    // 双策略一致性核对：必须复用同一份要素（sampleData() 每次调用会推进 id 序号，
+    // 两份不同数据不可比），故此处单独取一份共享样本。
+    const shared = sampleData();
+    let mismatches = 0;
+    for (const scenario of scenarios) {
+      const fast = buildLayout(shared, { ...scenario.options, collisionStrategy: 'spatial-index' });
+      const slow = buildLayout(shared, { ...scenario.options, collisionStrategy: 'brute-force' });
+      const sig = (l) =>
+        JSON.stringify({
+          labels: l.labels.map((x) => [x.featureId, x.placement, x.rect.x, x.rect.y]),
+          hidden: l.hidden.map((x) => [x.featureId, x.primaryReason, x.allReasons]),
+          trials: [...l.trials].map(([id, ts]) => [id, ts.map((t) => [t.placement, t.reasons])]),
+        });
+      if (sig(fast) !== sig(slow)) {
+        mismatches += 1;
+        console.error(`✗ 策略不一致：${scenario.name}`);
+      }
+      console.log(
+        `${scenario.name}: 空间索引精确测试 ${fast.cost.exactTests} vs 暴力 ${slow.cost.exactTests}（碰撞 ${fast.cost.labelCollisions}+${fast.cost.markerCollisions} / ${slow.cost.labelCollisions}+${slow.cost.markerCollisions}）`,
+      );
+    }
+    console.log('');
+    console.log(mismatches === 0 ? '✓ 空间索引与暴力基准在所有自检场景最终采用集一致' : `✗ ${mismatches} 个场景不一致`);
+    if (mismatches > 0) process.exitCode = 1;
     return;
   }
 
@@ -190,8 +231,11 @@ async function main() {
   node src/cli/cli.js serve [--port 8080]           启动本地服务并打开编辑窗口
   node src/cli/cli.js report <features.json> [选项]  离线标注报告
     --width 1000 --height 800 --rotate 45 --scale 1.5
+    --strategy spatial-index|brute-force             选择碰撞候选策略（默认空间索引）
     --json [out.json]                                同时输出机器可读结果
-  node src/cli/cli.js selfcheck                      示例数据多场景自检`);
+  node src/cli/cli.js selfcheck                      示例数据多场景自检 + 双策略一致性
+  npm run bench                                      密集标签/慢速平移下的加速对比基准
+  npm run bench:check                                仅校验加速与暴力基准采用集一致`);
 }
 
 main().catch((err) => {

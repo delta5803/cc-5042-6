@@ -44,7 +44,23 @@
           <div class="row">
             <label><input type="checkbox" id="hidden-toggle" checked /> 隐藏要素标记</label>
           </div>
+          <div class="row">
+            <label>碰撞候选加速
+              <select id="strategy-select">
+                <option value="spatial-index" selected>空间索引（加速）</option>
+                <option value="brute-force">暴力基准（运行参照）</option>
+              </select>
+            </label>
+          </div>
           <div class="row muted" id="view-state"></div>
+        </section>
+
+        <section class="panel">
+          <h2>布局成本分解（本帧）</h2>
+          <div id="cost-breakdown" class="coster"></div>
+          <div class="hint">
+            两种策略共用同一判定与顺序；加速只减少“精确相交测试”次数，最终采用集必须一致。
+          </div>
         </section>
 
         <section class="panel">

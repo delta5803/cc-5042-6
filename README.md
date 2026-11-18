@@ -20,6 +20,10 @@ npm run serve
 - **平移地图**：选择工具下拖拽；滚轮以光标为锚点缩放；工具栏旋转 ±15°；
 - **绘制要素**：加点工具单击放置点位；区域工具逐点单击、双击/Enter 完成、Esc 取消；
 - **改优先级与字号**：点选要素后在右侧检查器修改，立即重新布局；
+- **切换碰撞策略**：右侧“碰撞候选加速”下拉框可在空间索引（默认）与保留的暴力基准之间切换，
+  用于肉眼对照两者最终采用集一致、成本不同；
+- **成本分解**：右侧“布局成本分解（本帧）”实时显示候选数、精确相交测试数、宽相位命中、
+  标签/标记碰撞数与布局耗时；
 - **结果区**：表格按实际处理顺序列出每个要素的显示/隐藏、采用的候选位置与**真实拒绝原因**；
   画布上叠加全部候选矩形（绿色可用、红色被拒）、隐藏标记与区域标注锚点；
 - **持久化与交换**：自动保存到 localStorage，支持 JSON 导入/导出；
@@ -31,8 +35,10 @@ CLI 不提供标注编辑界面，只做离线报告、自检与静态服务：
 
 ```bash
 node src/cli/cli.js serve [--port 8080]             # 启动图形编辑窗口的静态服务
-node src/cli/cli.js report data/sample-features.json [--rotate 45] [--scale 2] [--json out.json]
-node src/cli/cli.js selfcheck                       # 示例数据多场景（旋转/缩放/小视口）自检
+node src/cli/cli.js report data/sample-features.json [--rotate 45] [--scale 2] [--strategy brute-force] [--json out.json]
+node src/cli/cli.js selfcheck                       # 示例数据多场景（旋转/缩放/小视口）自检 + 双策略一致性
+npm run bench                                       # 密集标签/慢速平移下的碰撞候选加速对比
+npm run bench:check                                 # 等价性门禁（不比较耗时）
 ```
 
 离线报告使用与引擎同接口的测试度量器（按文字体系逐字累加），生产图形界面使用
@@ -44,8 +50,9 @@ Canvas `measureText` 的真实字形包围盒。
 npm test
 ```
 
-22 个测试覆盖：碰撞真值独立复核、世界距离与屏幕碰撞分离、旋转/缩放/DPR 重映射、
-确定性与稳定性、优先级顺序、跨画布边缘、区域锚点与标记障碍、真实字形边界差异。
+27 个测试覆盖：碰撞真值独立复核、世界距离与屏幕碰撞分离、旋转/缩放/DPR 重映射、
+确定性与稳定性、优先级顺序、跨画布边缘、区域锚点与标记障碍、真实字形边界差异、
+碰撞候选加速与暴力基准的最终采用集等价。
 
 ## 目录结构
 
@@ -56,10 +63,12 @@ src/
   text-measure.js  Canvas 真实字形度量（actualBoundingBox* + 边距/光晕）
   features.js      点/区域要素模型与校验
   candidate.js     固定顺序的候选位置生成
-  labeler.js       标注引擎：确定性排序、候选试探、真实碰撞、拒绝原因
+  spatial-index.js 屏幕空间均匀网格索引（碰撞宽相位加速，不改变判定结果）
+  labeler.js       标注引擎：确定性排序、候选试探、真实碰撞、拒绝原因、成本分解
   renderer.js      全矢量 Canvas 渲染与调试叠加层
   ui/              图形编辑窗口（index.html / editor.js / styles.css / 示例数据）
   cli/cli.js       命令行辅助工具
+bench/             碰撞候选加速基准与等价性门禁
 test/              node:test 测试与测试用度量器
 data/              示例要素 JSON
 docs/              架构、算法与测试说明
@@ -76,3 +85,5 @@ docs/              架构、算法与测试说明
 | 高密度场景不隐藏全部低优先项 | 逐候选试探 + 真实放置率统计，密集网格测试要求同时存在放置与隐藏 |
 | 拒绝原因与最终字形可解释 | 每个候选记录原因，结果表与调试叠加层据实展示 |
 | 真实布局与绘制，非 HTML 标签堆叠 | `src/renderer.js` 全部 Canvas 绘制（含文字、光晕、引线） |
+| 碰撞候选加速不改变采用集 | `src/spatial-index.js` 宽相位 + 精确 AABB；`npm run bench:check` 逐字节门禁 |
+| 平移缩放后索引随重映射矩形重建、不裁剪越界标签 | 每帧重建索引；负坐标/画外矩形照常入索引；测试 `test/spatial-index.test.js` |

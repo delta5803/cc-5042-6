@@ -188,6 +188,26 @@ button.tool.active {
   font-size: 17px;
 }
 
+.coster {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 10px;
+  font-size: 12px;
+}
+
+.coster .k {
+  color: #5b6b7f;
+}
+
+.coster .v {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.coster .v b {
+  font-weight: 600;
+}
+
 .table-wrap {
   overflow: auto;
   border: 1px solid #e3e8ef;

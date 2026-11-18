@@ -10,6 +10,7 @@ import { Rect, rectsIntersect, pointInPolygon } from './geometry.js';
 import { worldToScreen, transformRing } from './projection.js';
 import { buildCandidates } from './candidate.js';
 import { validateFeature } from './features.js';
+import { RectSpatialIndex } from './spatial-index.js';
 
 export const REJECT_REASONS = Object.freeze({
   OFF_CANVAS: 'off-canvas',
@@ -30,7 +31,15 @@ export const DEFAULT_OPTIONS = {
   collisionPadding: 1,    // 标签之间额外的碰撞间距
   candidateGap: 4,        // 候选与锚点/标记的基础间距
   markerPadding: 1,       // 点标记碰撞盒额外膨胀
+  // 碰撞候选加速开关（不改变选择结果，只改变候选筛选方式与成本）：
+  //   'spatial-index' 先经屏幕空间网格索引缩小候选，再做精确 AABB；
+  //   'brute-force'   保留原“与全部已放置矩形逐一精确比较”的运行参照。
+  collisionStrategy: 'spatial-index',
+  spatialCellSize: 64,    // 屏幕空间网格单元边长（CSS 像素）
 };
+
+const nowMs = () =>
+  typeof globalThis.performance?.now === 'function' ? globalThis.performance.now() : Date.now();
 
 export function compareFeatureId(a, b) {
   const na = Number(a);
@@ -74,6 +83,9 @@ export function runLabeling({ features, view, measurer, options = {} }) {
   for (const f of features) validateFeature(f);
 
   const opts = { ...DEFAULT_OPTIONS, ...options };
+  if (opts.collisionStrategy !== 'spatial-index' && opts.collisionStrategy !== 'brute-force') {
+    throw new Error(`未知碰撞策略：${opts.collisionStrategy}`);
+  }
   const ordered = orderFeatures(features);
 
   // 屏幕锚点与区域环（旋转/缩放/DPR 变化后在此重新映射）
@@ -94,10 +106,37 @@ export function runLabeling({ features, view, measurer, options = {} }) {
     }
   }
 
+  const useIndex = opts.collisionStrategy === 'spatial-index';
+  // 已放置标签与点标记障碍各自建索引：平移/缩放/旋转后本帧锚点、环已重映射，
+  // 索引随本帧矩形重建，不存在跨帧陈旧条目；索引本身不按视口裁剪，
+  // 画布外或跨边缘矩形照常入索引，故不会因可见区裁剪漏检越界标签。
+  const placedIndex = useIndex
+    ? new RectSpatialIndex({ cellSize: opts.spatialCellSize })
+    : null;
+  const markerIndex = useIndex
+    ? new RectSpatialIndex({ cellSize: opts.spatialCellSize })
+    : null;
+  if (markerIndex) {
+    for (const obstacle of markerObstacles) markerIndex.insert(obstacle.rect, obstacle);
+  }
+
   const placedLabels = [];
   const placedRects = [];
   const hidden = [];
   const allTrials = new Map();
+
+  // 成本分解：候选数、精确相交测试次数、宽相位命中数、标签/标记碰撞数。
+  const cost = {
+    candidates: 0,
+    exactTests: 0,
+    broadPhaseHits: 0,
+    labelCollisions: 0,
+    markerCollisions: 0,
+    offCanvasCandidates: 0,
+    outsideRegionCandidates: 0,
+    layoutMs: 0,
+  };
+  const layoutStart = nowMs();
 
   for (const feature of ordered) {
     const anchor = screenAnchors.get(feature.id);
@@ -110,27 +149,71 @@ export function runLabeling({ features, view, measurer, options = {} }) {
     let selected = null;
 
     for (const candidate of candidates) {
+      cost.candidates += 1;
       const reasons = [];
       const { rect } = candidate;
 
       if (!withinCanvas(rect, view, opts.edgeMargin)) {
         reasons.push(REJECT_REASONS.OFF_CANVAS);
+        cost.offCanvasCandidates += 1;
       }
 
-      for (const placed of placedRects) {
-        if (rectsIntersect(rect, placed, opts.collisionPadding)) {
+      // 标签碰撞：只对宽相位给出的可能相交条目做精确 AABB。
+      // 两种策略命中集合相同，唯一的差别是筛选成本与顺序证据。
+      if (useIndex) {
+        const hits = placedIndex.query(rect, opts.collisionPadding);
+        cost.broadPhaseHits += hits.length;
+        let collided = false;
+        for (const entry of hits) {
+          cost.exactTests += 1;
+          if (rectsIntersect(rect, entry.rect, opts.collisionPadding)) {
+            collided = true;
+            break;
+          }
+        }
+        if (collided) {
           reasons.push(REJECT_REASONS.LABEL_COLLISION);
-          break;
+          cost.labelCollisions += 1;
+        }
+      } else {
+        for (const placed of placedRects) {
+          cost.exactTests += 1;
+          if (rectsIntersect(rect, placed, opts.collisionPadding)) {
+            reasons.push(REJECT_REASONS.LABEL_COLLISION);
+            cost.labelCollisions += 1;
+            break;
+          }
         }
       }
 
       // 与其他要素的点标记碰撞（允许触碰本要素标记，间距已在候选偏移中处理）
       if (!reasons.includes(REJECT_REASONS.LABEL_COLLISION)) {
-        for (const obstacle of markerObstacles) {
-          if (obstacle.featureId === feature.id) continue;
-          if (rectsIntersect(rect, obstacle.rect, 0)) {
+        if (useIndex) {
+          const hits = markerIndex.query(rect, 0);
+          cost.broadPhaseHits += hits.length;
+          let collided = false;
+          for (const entry of hits) {
+            const obstacle = entry.data;
+            if (obstacle.featureId === feature.id) continue;
+            cost.exactTests += 1;
+            if (rectsIntersect(rect, obstacle.rect, 0)) {
+              collided = true;
+              break;
+            }
+          }
+          if (collided) {
             reasons.push(REJECT_REASONS.MARKER_COLLISION);
-            break;
+            cost.markerCollisions += 1;
+          }
+        } else {
+          for (const obstacle of markerObstacles) {
+            if (obstacle.featureId === feature.id) continue;
+            cost.exactTests += 1;
+            if (rectsIntersect(rect, obstacle.rect, 0)) {
+              reasons.push(REJECT_REASONS.MARKER_COLLISION);
+              cost.markerCollisions += 1;
+              break;
+            }
           }
         }
       }
@@ -143,6 +226,7 @@ export function runLabeling({ features, view, measurer, options = {} }) {
           // 居中候选必须落在区域内；外移候选允许出界（走引线），只作标记不拒绝
           if (candidate.placement === 'center') {
             reasons.push(REJECT_REASONS.OUTSIDE_REGION);
+            cost.outsideRegionCandidates += 1;
           }
         }
       }
@@ -179,6 +263,7 @@ export function runLabeling({ features, view, measurer, options = {} }) {
       };
       placedLabels.push(label);
       placedRects.push(candidate.rect);
+      if (placedIndex) placedIndex.insert(candidate.rect, label);
     } else {
       const allReasons = [...new Set(trials.flatMap((t) => t.reasons))];
       const primaryReason =
@@ -197,6 +282,8 @@ export function runLabeling({ features, view, measurer, options = {} }) {
     }
   }
 
+  cost.layoutMs = nowMs() - layoutStart;
+
   return {
     view: view.clone(),
     orderedFeatureIds: ordered.map((f) => f.id),
@@ -204,11 +291,14 @@ export function runLabeling({ features, view, measurer, options = {} }) {
     hidden,
     trials: allTrials,
     markerObstacles,
+    collisionStrategy: opts.collisionStrategy,
     stats: {
       total: ordered.length,
       placed: placedLabels.length,
       hidden: hidden.length,
       placementRate: ordered.length ? placedLabels.length / ordered.length : 0,
     },
+    // 成本分解：候选数、精确相交测试数、宽相位命中数、标签/标记碰撞数、布局耗时。
+    cost,
   };
 }

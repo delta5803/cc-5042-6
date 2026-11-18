@@ -4,9 +4,11 @@
   "description": "交互地图文字标注引擎：真实字形边界、优先级候选选择、屏幕空间碰撞避让的矢量标注编辑窗口",
   "type": "module",
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test test/*.test.js",
     "serve": "node src/cli/cli.js serve",
-    "report": "node src/cli/cli.js report"
+    "report": "node src/cli/cli.js report",
+    "bench": "node bench/labeling-bench.js",
+    "bench:check": "node bench/verify-equivalence.js"
   },
   "engines": {
     "node": ">=18"
